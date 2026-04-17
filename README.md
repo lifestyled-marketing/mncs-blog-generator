@@ -61,18 +61,18 @@ Simple health check:
 
 ## Pipeline
 
-1. **Extract** (`claude-sonnet-4-20250514`, 1500 tokens, no web search). Pulls
+1. **Extract** (`claude-opus-4-7`, 1500 tokens, no web search). Pulls
    the single most actionable topic, 3 to 5 quotes with speakers,
    statistics/claims, and 2 to 3 sub-points. Returns JSON.
 2. **Research** (`claude-sonnet-4-20250514`, 1500 tokens, web search on with up
    to 5 uses of the `web_search_20250305` tool). Finds 4 to 6 credible data
    points supporting the topic, returned as `STAT / SOURCE / YEAR / RELEVANCE`
    blocks.
-3. **Write** (`claude-sonnet-4-20250514`, 4096 tokens, no web search). Writes a
-   roughly 1700 word blog post following `/config/messaging-guide.txt`, plus a
-   5 to 7 question FAQ section. Can be switched to
-   `claude-opus-4-6-20250414` later by changing the `MODEL` constant in
-   `lib/write.js`.
+3. **Write** (`claude-opus-4-7`, 4096 tokens, no web search). Writes a
+   roughly 1700 word blog post about the topic (the podcast is treated as a
+   catalyst, not the subject), following `/config/messaging-guide.txt`, plus a
+   5 to 7 question FAQ section. Swap the `MODEL` constant in `lib/write.js` to
+   change models.
 
 ## Environment variables
 
