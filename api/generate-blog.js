@@ -1,3 +1,4 @@
+import { waitUntil } from '@vercel/functions';
 import { extract } from '../lib/extract.js';
 import { research } from '../lib/research.js';
 import { write } from '../lib/write.js';
@@ -119,21 +120,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  const pipelinePromise = runPipeline({ transcript, callbackUrl, requestId });
-
-  // Vercel's @vercel/functions waitUntil would be ideal here, but to keep deps
-  // minimal we rely on the Node runtime continuing to run the promise after
-  // the response is flushed, up to the function's maxDuration in vercel.json.
-  if (typeof globalThis.waitUntil === 'function') {
-    globalThis.waitUntil(pipelinePromise);
-  }
+  // Hand the pipeline to Vercel's waitUntil so it keeps running in the
+  // background after we flush the 202 response, up to maxDuration.
+  waitUntil(runPipeline({ transcript, callbackUrl, requestId }));
 
   res.status(202).json({
     status: 'accepted',
     request_id: requestId,
     message: 'Blog generation started. Results will be POSTed to the callback URL.',
   });
-
-  // Keep a reference so lint does not flag the floating promise.
-  await pipelinePromise.catch(() => {});
 }

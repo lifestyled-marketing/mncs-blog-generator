@@ -12,6 +12,7 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.1"
+    "@anthropic-ai/sdk": "^0.30.1",
+    "@vercel/functions": "^1.5.0"
   }
 }
