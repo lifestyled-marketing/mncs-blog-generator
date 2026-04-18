@@ -7,11 +7,11 @@ export const code = 'MN';
 export const name = 'Mary Noone Campaign Strategy';
 
 export function validateInput(body) {
-  const transcript = typeof body.transcript === 'string' ? body.transcript.trim() : '';
-  if (!transcript) {
-    return { error: 'Missing "transcript" field for brand MN' };
+  const content = typeof body.content_start === 'string' ? body.content_start.trim() : '';
+  if (!content) {
+    return { error: 'Missing "content_start" field for brand MN (expects a podcast transcript)' };
   }
-  return { input: { transcript } };
+  return { input: { transcript: content } };
 }
 
 export async function runPipeline({ input, requestId, log = () => {} }) {

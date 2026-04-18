@@ -9,26 +9,33 @@ the finished blog post back to a Zapier Catch Hook URL.
 
 ### `POST /api/generate-blog`
 
-Required field: `brand_code` (two letter code). Other required fields depend
-on the brand.
+Every request uses the same two fields, regardless of brand:
 
-**MN (Mary Noone Campaign Strategy):**
+- `brand_code` - two letter code (e.g. `MN`, `EC`)
+- `content_start` - the input text for that brand. What it should contain
+  depends on the brand (see below).
+
 ```json
 {
   "brand_code": "MN",
-  "transcript": "full podcast transcript text",
+  "content_start": "full podcast transcript text",
   "callback_url": "https://hooks.zapier.com/..."
 }
 ```
 
-**EC (Emberly Counseling):**
 ```json
 {
   "brand_code": "EC",
-  "topic": "How to tell the difference between OCD and anxiety",
+  "content_start": "How to tell the difference between OCD and anxiety",
   "callback_url": "https://hooks.zapier.com/..."
 }
 ```
+
+What `content_start` should contain, per brand:
+
+- **MN**: a full podcast transcript.
+- **EC**: a topic or keyword string (the thing you want the blog post to be
+  about).
 
 `callback_url` is optional. If omitted, the `ZAPIER_CALLBACK_URL` env var is
 used.
@@ -145,7 +152,9 @@ vercel.json, package.json, .env.example, .gitignore
 3. Add a module `brands/XX/index.js` that exports:
    - `code: "XX"`
    - `name: "Full Brand Name"`
-   - `validateInput(body)` - returns `{ input }` or `{ error }`.
+   - `validateInput(body)` - reads `body.content_start`, returns
+     `{ input }` or `{ error }`. `input` is whatever shape the brand's
+     `runPipeline` expects (for example `{ transcript }` or `{ topic }`).
    - `runPipeline({ input, requestId, log })` - returns
      `{ topic, blogPost, wordCount, metaTitle?, metaDescription? }`.
 4. Register it in `brands/registry.js`: `import * as XX from './XX/index.js'`
@@ -175,14 +184,14 @@ Test MN locally:
 ```bash
 curl -X POST http://localhost:3000/api/generate-blog \
   -H "Content-Type: application/json" \
-  -d '{"brand_code":"MN","transcript":"Short test transcript..."}'
+  -d '{"brand_code":"MN","content_start":"Short test transcript..."}'
 ```
 
 Test EC locally:
 ```bash
 curl -X POST http://localhost:3000/api/generate-blog \
   -H "Content-Type: application/json" \
-  -d '{"brand_code":"EC","topic":"How to tell OCD from anxiety"}'
+  -d '{"brand_code":"EC","content_start":"How to tell OCD from anxiety"}'
 ```
 
 ## Notes

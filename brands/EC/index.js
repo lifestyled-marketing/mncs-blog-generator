@@ -8,11 +8,11 @@ export const code = 'EC';
 export const name = 'Emberly Counseling';
 
 export function validateInput(body) {
-  const topic = typeof body.topic === 'string' ? body.topic.trim() : '';
-  if (!topic) {
-    return { error: 'Missing "topic" field for brand EC' };
+  const content = typeof body.content_start === 'string' ? body.content_start.trim() : '';
+  if (!content) {
+    return { error: 'Missing "content_start" field for brand EC (expects a topic or keyword)' };
   }
-  return { input: { topic } };
+  return { input: { topic: content } };
 }
 
 export async function runPipeline({ input, requestId, log = () => {} }) {
