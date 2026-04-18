@@ -39,19 +39,24 @@ function buildUserPrompt({ topic, phase1Output }) {
 export async function phase2Gather({ topic, phase1Output }) {
   const client = getClient();
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    system: SYSTEM_PROMPT,
-    tools: [
-      {
-        type: 'web_fetch_20250910',
-        name: 'web_fetch',
-        max_uses: 5,
-      },
-    ],
-    messages: [{ role: 'user', content: buildUserPrompt({ topic, phase1Output }) }],
-  });
+  const response = await client.messages.create(
+    {
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      system: SYSTEM_PROMPT,
+      tools: [
+        {
+          type: 'web_fetch_20250910',
+          name: 'web_fetch',
+          max_uses: 5,
+        },
+      ],
+      messages: [{ role: 'user', content: buildUserPrompt({ topic, phase1Output }) }],
+    },
+    {
+      headers: { 'anthropic-beta': 'web-fetch-2025-09-10' },
+    },
+  );
 
   const text = joinText(response.content);
   if (!text) {
