@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getClient, joinText } from './anthropic.js';
+import { getClient, joinText } from '../../lib/anthropic.js';
+import { loadMessagingGuide } from '../../lib/utils.js';
 
 const MODEL = 'claude-opus-4-7';
 const MAX_TOKENS = 4096;
@@ -10,21 +10,12 @@ const SYSTEM_PROMPT =
   'You are an expert blog writer specializing in political campaign strategy and marketing content. Write in the brand voice described in the messaging guide. Be practical, cite sources, and make every section actionable.';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const GUIDE_PATH = path.resolve(__dirname, '..', 'config', 'messaging-guide.txt');
+const GUIDE_PATH = path.resolve(__dirname, 'messaging-guide.txt');
 
 let cachedGuide;
-
-async function loadMessagingGuide() {
+async function getGuide() {
   if (cachedGuide !== undefined) return cachedGuide;
-  try {
-    cachedGuide = await fs.readFile(GUIDE_PATH, 'utf8');
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      cachedGuide = '';
-    } else {
-      throw err;
-    }
-  }
+  cachedGuide = await loadMessagingGuide(GUIDE_PATH);
   return cachedGuide;
 }
 
@@ -95,7 +86,7 @@ function buildUserPrompt({ extracted, researchNotes, messagingGuide }) {
 
 export async function write({ extracted, researchNotes }) {
   const client = getClient();
-  const messagingGuide = await loadMessagingGuide();
+  const messagingGuide = await getGuide();
 
   const response = await client.messages.create({
     model: MODEL,

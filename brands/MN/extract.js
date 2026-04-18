@@ -1,4 +1,5 @@
-import { getClient, joinText } from './anthropic.js';
+import { getClient, joinText } from '../../lib/anthropic.js';
+import { stripCodeFences } from '../../lib/utils.js';
 
 const MODEL = 'claude-opus-4-7';
 const MAX_TOKENS = 1500;
@@ -21,14 +22,6 @@ function buildUserPrompt(transcript) {
     'TRANSCRIPT:',
     transcript,
   ].join('\n');
-}
-
-function stripCodeFences(text) {
-  const trimmed = text.trim();
-  if (trimmed.startsWith('```')) {
-    return trimmed.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
-  }
-  return trimmed;
 }
 
 export async function extract(transcript) {

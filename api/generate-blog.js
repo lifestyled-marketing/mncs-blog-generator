@@ -1,11 +1,5 @@
 import { waitUntil } from '@vercel/functions';
-import { extract } from '../lib/extract.js';
-import { research } from '../lib/research.js';
-import { write } from '../lib/write.js';
-
-function countWords(text) {
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
+import { getBrand, listBrandCodes } from '../brands/registry.js';
 
 async function postCallback(callbackUrl, payload) {
   try {
@@ -25,38 +19,32 @@ async function postCallback(callbackUrl, payload) {
   }
 }
 
-async function runPipeline({ transcript, callbackUrl, requestId }) {
-  console.log(`[${requestId}] pipeline start, transcript length ${transcript.length}`);
-  let failedStep = null;
+async function runBrandPipeline({ brand, input, callbackUrl, requestId }) {
+  const brandCode = brand.code;
   try {
-    failedStep = 'extract';
-    console.log(`[${requestId}] step 1 extract`);
-    const extracted = await extract(transcript);
-    console.log(`[${requestId}] extract ok, topic: ${extracted.topic}`);
-
-    failedStep = 'research';
-    console.log(`[${requestId}] step 2 research`);
-    const researchNotes = await research(extracted);
-    console.log(`[${requestId}] research ok, ${researchNotes.length} chars`);
-
-    failedStep = 'write';
-    console.log(`[${requestId}] step 3 write`);
-    const blogPost = await write({ extracted, researchNotes });
-    const wordCount = countWords(blogPost);
-    console.log(`[${requestId}] write ok, ${wordCount} words`);
+    const result = await brand.runPipeline({
+      input,
+      requestId,
+      log: (...args) => console.log(...args),
+    });
 
     await postCallback(callbackUrl, {
       status: 'success',
-      topic: extracted.topic,
-      blog_post: blogPost,
-      word_count: wordCount,
+      brand_code: brandCode,
+      topic: result.topic,
+      blog_post: result.blogPost,
+      word_count: result.wordCount,
+      meta_title: result.metaTitle || null,
+      meta_description: result.metaDescription || null,
       generated_at: new Date().toISOString(),
     });
     console.log(`[${requestId}] pipeline done`);
   } catch (err) {
+    const failedStep = err && err.step ? err.step : 'unknown';
     console.error(`[${requestId}] pipeline failed at ${failedStep}:`, err);
     await postCallback(callbackUrl, {
       status: 'error',
+      brand_code: brandCode,
       error: err instanceof Error ? err.message : String(err),
       failed_step: failedStep,
     });
@@ -79,7 +67,7 @@ async function readJsonBody(req) {
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    res.status(200).json({ status: 'ok' });
+    res.status(200).json({ status: 'ok', brands: listBrandCodes() });
     return;
   }
 
@@ -100,9 +88,18 @@ export default async function handler(req, res) {
     return;
   }
 
-  const transcript = typeof body.transcript === 'string' ? body.transcript.trim() : '';
-  if (!transcript) {
-    res.status(400).json({ status: 'error', error: 'Missing "transcript" in request body' });
+  const brand = getBrand(body.brand_code);
+  if (!brand) {
+    res.status(400).json({
+      status: 'error',
+      error: `Unknown or missing "brand_code". Supported codes: ${listBrandCodes().join(', ')}`,
+    });
+    return;
+  }
+
+  const validation = brand.validateInput(body);
+  if (validation.error) {
+    res.status(400).json({ status: 'error', error: validation.error });
     return;
   }
 
@@ -120,13 +117,19 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Hand the pipeline to Vercel's waitUntil so it keeps running in the
-  // background after we flush the 202 response, up to maxDuration.
-  waitUntil(runPipeline({ transcript, callbackUrl, requestId }));
+  waitUntil(
+    runBrandPipeline({
+      brand,
+      input: validation.input,
+      callbackUrl,
+      requestId,
+    }),
+  );
 
   res.status(202).json({
     status: 'accepted',
     request_id: requestId,
+    brand_code: brand.code,
     message: 'Blog generation started. Results will be POSTed to the callback URL.',
   });
 }

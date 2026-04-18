@@ -1,6 +1,6 @@
-import { getClient, joinText } from './anthropic.js';
+import { getClient, joinText } from '../../lib/anthropic.js';
 
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-6';
 const MAX_TOKENS = 1500;
 
 const SYSTEM_PROMPT =

@@ -1,109 +1,166 @@
-# MNCS Transcript to Blog Generator
+# MNCS Blog Generator
 
-A Vercel serverless function that receives a podcast transcript via webhook,
-runs it through a three step Claude AI pipeline (extract, research, write), and
-POSTs the finished blog post back to a Zapier Catch Hook URL.
+Vercel serverless function that generates brand-specific blog posts from a
+webhook payload. Multiple brands, each with its own pipeline, prompts, and
+messaging guide. The function returns `202 Accepted` immediately and POSTs
+the finished blog post back to a Zapier Catch Hook URL.
 
 ## Endpoints
 
 ### `POST /api/generate-blog`
 
-Request body:
+Required field: `brand_code` (two letter code). Other required fields depend
+on the brand.
 
+**MN (Mary Noone Campaign Strategy):**
 ```json
 {
-  "transcript": "full transcript text here",
-  "callback_url": "https://hooks.zapier.com/hooks/catch/XXXXXX/YYYYYY/"
+  "brand_code": "MN",
+  "transcript": "full podcast transcript text",
+  "callback_url": "https://hooks.zapier.com/..."
+}
+```
+
+**EC (Emberly Counseling):**
+```json
+{
+  "brand_code": "EC",
+  "topic": "How to tell the difference between OCD and anxiety",
+  "callback_url": "https://hooks.zapier.com/..."
 }
 ```
 
 `callback_url` is optional. If omitted, the `ZAPIER_CALLBACK_URL` env var is
 used.
 
-The endpoint returns `202 Accepted` immediately so Zapier does not time out:
-
+The endpoint immediately returns:
 ```json
-{ "status": "accepted", "request_id": "abc12345", "message": "..." }
-```
-
-The pipeline runs in the background. When it finishes, the function POSTs the
-result to the callback URL.
-
-Success payload:
-
-```json
-{
-  "status": "success",
-  "topic": "The extracted topic",
-  "blog_post": "# Full blog post in markdown...",
-  "word_count": 1823,
-  "generated_at": "2026-04-16T12:00:00Z"
-}
-```
-
-Failure payload:
-
-```json
-{
-  "status": "error",
-  "error": "description of what failed",
-  "failed_step": "extract | research | write"
-}
+{ "status": "accepted", "request_id": "abc12345", "brand_code": "MN", "message": "..." }
 ```
 
 ### `GET /api/generate-blog`
 
-Simple health check:
-
+Health check. Also lists supported brand codes:
 ```json
-{ "status": "ok" }
+{ "status": "ok", "brands": ["MN", "EC"] }
 ```
 
-## Pipeline
+## Callback payload
 
-1. **Extract** (`claude-opus-4-7`, 1500 tokens, no web search). Pulls
-   the single most actionable topic, 3 to 5 quotes with speakers,
-   statistics/claims, and 2 to 3 sub-points. Returns JSON.
-2. **Research** (`claude-sonnet-4-20250514`, 1500 tokens, web search on with up
-   to 5 uses of the `web_search_20250305` tool). Finds 4 to 6 credible data
-   points supporting the topic, returned as `STAT / SOURCE / YEAR / RELEVANCE`
-   blocks.
-3. **Write** (`claude-opus-4-7`, 4096 tokens, no web search). Writes a
-   roughly 1700 word blog post about the topic (the podcast is treated as a
-   catalyst, not the subject), following `/config/messaging-guide.txt`, plus a
-   5 to 7 question FAQ section. Swap the `MODEL` constant in `lib/write.js` to
-   change models.
-
-## Environment variables
-
-Set these in the Vercel dashboard (Settings, Environment Variables):
-
-- `ANTHROPIC_API_KEY`: Anthropic API key.
-- `ZAPIER_CALLBACK_URL`: default Zapier Catch Hook URL. Overridden per request
-  if the body includes a `callback_url`.
-
-See `.env.example`.
-
-## `vercel.json` max duration
-
-`vercel.json` sets `maxDuration` to `300` seconds, which requires Vercel Pro.
-If you are on the free plan, change it to `60`:
-
+On success:
 ```json
 {
-  "functions": {
-    "api/generate-blog.js": {
-      "maxDuration": 60
-    }
-  }
+  "status": "success",
+  "brand_code": "MN",
+  "topic": "The extracted topic",
+  "blog_post": "# Full markdown post...",
+  "word_count": 1823,
+  "meta_title": "under 60 chars (EC only)",
+  "meta_description": "150 to 160 chars (EC only)",
+  "generated_at": "2026-04-18T..."
 }
 ```
 
-## Messaging guide
+On failure:
+```json
+{
+  "status": "error",
+  "brand_code": "MN",
+  "error": "description of what failed",
+  "failed_step": "extract | research | write | phase1_research | phase2_gather | phase3_blueprint | phase4_draft"
+}
+```
 
-`/config/messaging-guide.txt` is loaded by `lib/write.js` and passed to the
-writer model as brand voice context. The file ships empty. Paste your guide
-text in before going live.
+Zapier should branch on `brand_code` so the post goes to the right
+destination.
+
+## Brands
+
+### MN - Mary Noone Campaign Strategy
+
+Input: `transcript`. A 3-step pipeline.
+
+1. **Extract** (`claude-opus-4-7`, no web search) - pulls topic, 3 to 5
+   quotes with speakers, stats/claims, and 2 to 3 sub-points from the
+   transcript. Returns JSON.
+2. **Research** (`claude-sonnet-4-6`, `web_search_20250305`) - 4 to 6 credible
+   external data points with STAT / SOURCE / YEAR / RELEVANCE.
+3. **Write** (`claude-opus-4-7`, no web search) - roughly 1700 word blog post
+   about the topic (the podcast is only a catalyst, not the subject). H1
+   title, H2 sections, FAQ at end. Follows `brands/MN/messaging-guide.txt`.
+
+### EC - Emberly Counseling
+
+Input: `topic`. A 4-phase pipeline.
+
+1. **Phase 1 - Research** (`claude-sonnet-4-6`, `web_search_20250305`) -
+   real search queries grouped by intent, top 5 ranking URLs, angles and
+   gaps.
+2. **Phase 2 - Source Gathering** (`claude-sonnet-4-6`,
+   `web_fetch_20250910`) - pulls the top 3 to 5 URLs, produces a comparison
+   table plus 3 to 5 content opportunities.
+3. **Phase 3 - Blueprint** (`claude-opus-4-7`, no web) - recommended H1
+   plus 9 alternates, meta description, URL slug, full outline with key
+   points per section, FAQ seeds, keyword map, internal link opportunities,
+   word budget.
+4. **Phase 4 - Draft** (`claude-opus-4-7`, no web) - the full blog post
+   written from the blueprint, plus meta title, meta description, inline
+   image placements and link spots, and a self-check.
+
+Follows `brands/EC/messaging-guide.txt`.
+
+## Environment variables
+
+Set in the Vercel dashboard (Settings, Environment Variables):
+
+- `ANTHROPIC_API_KEY` - Anthropic API key.
+- `ZAPIER_CALLBACK_URL` - default Zapier Catch Hook URL. Overridden per
+  request if the body includes a `callback_url`.
+
+## Project structure
+
+```
+/api
+  generate-blog.js            <- router, validates brand_code, 202 + waitUntil
+/brands
+  registry.js                 <- code -> brand module
+  /MN
+    index.js                  <- runPipeline, validateInput
+    extract.js, research.js, write.js
+    messaging-guide.txt
+  /EC
+    index.js
+    phase1-research.js, phase2-gather.js, phase3-blueprint.js, phase4-draft.js
+    messaging-guide.txt
+/lib
+  anthropic.js                <- shared SDK client
+  utils.js                    <- countWords, loadMessagingGuide, StepError
+vercel.json, package.json, .env.example, .gitignore
+```
+
+### Adding a new brand
+
+1. `mkdir brands/XX`
+2. Add `brands/XX/messaging-guide.txt`.
+3. Add a module `brands/XX/index.js` that exports:
+   - `code: "XX"`
+   - `name: "Full Brand Name"`
+   - `validateInput(body)` - returns `{ input }` or `{ error }`.
+   - `runPipeline({ input, requestId, log })` - returns
+     `{ topic, blogPost, wordCount, metaTitle?, metaDescription? }`.
+4. Register it in `brands/registry.js`: `import * as XX from './XX/index.js'`
+   and add `XX` to the `brands` object.
+
+## `vercel.json` max duration
+
+Set to `300` seconds (Vercel Pro). Drop to `60` on the free plan:
+
+```json
+{ "functions": { "api/generate-blog.js": { "maxDuration": 60 } } }
+```
+
+Note: EC's 4-phase pipeline uses `web_search` and `web_fetch`, which add
+latency. Plan on Pro for EC.
 
 ## Local development
 
@@ -114,32 +171,25 @@ cp .env.example .env.local
 npx vercel dev
 ```
 
-Test it locally:
-
+Test MN locally:
 ```bash
 curl -X POST http://localhost:3000/api/generate-blog \
   -H "Content-Type: application/json" \
-  -d '{"transcript": "Here is a short transcript..."}'
+  -d '{"brand_code":"MN","transcript":"Short test transcript..."}'
 ```
 
-## Deploying to Vercel via GitHub
-
-1. Create a new GitHub repo (for example `mncs-blog-generator`) and push this
-   code to it.
-2. Sign in at https://vercel.com and click **Add New, Project**.
-3. Import the GitHub repo. Vercel auto-detects the `api/` directory and
-   `vercel.json`.
-4. Under **Environment Variables** add `ANTHROPIC_API_KEY` and
-   `ZAPIER_CALLBACK_URL`.
-5. Click **Deploy**. Your endpoint will be
-   `https://<project>.vercel.app/api/generate-blog`.
-6. Point the Zapier webhook action (or any upstream caller) at that URL.
+Test EC locally:
+```bash
+curl -X POST http://localhost:3000/api/generate-blog \
+  -H "Content-Type: application/json" \
+  -d '{"brand_code":"EC","topic":"How to tell OCD from anxiety"}'
+```
 
 ## Notes
 
-- The generator never uses em dashes in output. The writer system prompt
-  enforces this.
-- All three pipeline steps log to Vercel function logs with a shared
-  `request_id` so a single run can be traced end to end.
-- Keep the function dependency list minimal. Only `@anthropic-ai/sdk` is
-  required.
+- The generator never uses em dashes in output. Both writer prompts enforce
+  this.
+- All steps log to Vercel function logs with a shared `request_id` so a
+  single run can be traced end to end.
+- Pipeline runs in the background via `@vercel/functions` `waitUntil`, up to
+  the function's `maxDuration`.
