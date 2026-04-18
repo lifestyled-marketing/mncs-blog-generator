@@ -81,6 +81,19 @@ On failure:
 Zapier should branch on `brand_code` so the post goes to the right
 destination.
 
+## Global style guide
+
+`style-guide.txt` at the repo root holds rules that apply to every brand's
+writing steps, on top of each brand's messaging guide. Current rules:
+
+- No "It's not X. It's Y." / "We don't just X. We Y." reframe patterns.
+- No em dashes.
+
+It gets loaded and injected into the user prompt for MN's write step, EC's
+Phase 4 draft, and EC's Phase 5 framework check. Edit the file to add or
+change rules. A brand's messaging guide defines voice and tone; the style
+guide wins on anything it explicitly covers.
+
 ## Brands
 
 ### MN - Mary Noone Campaign Strategy

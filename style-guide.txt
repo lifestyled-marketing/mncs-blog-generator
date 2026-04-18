@@ -1,0 +1,28 @@
+# Global Writing Style Guide
+
+These rules apply to every brand, on top of the brand's messaging guide. A
+brand's messaging guide defines voice and tone. This file defines rules that
+apply regardless of voice. If a brand guide conflicts with a rule here on
+anything these rules cover, the rules below win.
+
+## Banned rhetorical patterns
+
+Avoid the "It's not X. It's Y." reframe pattern and similar formulaic
+rhetorical pivots (e.g. "We don't just X. We Y." or "This isn't about X.
+It's about Y."). These read as AI-generated. Use direct, plain statements
+instead.
+
+Examples of what to avoid:
+- "It's not about the data. It's about the story."
+- "We don't just build tools. We build relationships."
+- "This isn't a blog post. It's a playbook."
+
+Rewrite as direct statements:
+- "The story matters more than the data."
+- "We build relationships, not just tools."
+- "This is a playbook."
+
+## Punctuation
+
+Do not use em dashes in any response. Use commas, periods, or parentheses
+instead.

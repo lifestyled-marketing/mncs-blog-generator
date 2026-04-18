@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getClient, joinText } from '../../lib/anthropic.js';
-import { loadMessagingGuide } from '../../lib/utils.js';
+import { loadMessagingGuide, loadStyleGuide } from '../../lib/utils.js';
 
 const MODEL = 'claude-opus-4-7';
 const MAX_TOKENS = 7000;
@@ -19,8 +19,13 @@ async function getGuide() {
   return cachedGuide;
 }
 
-function buildUserPrompt({ topic, draft, messagingGuide }) {
+function buildUserPrompt({ topic, draft, messagingGuide, styleGuide }) {
   return [
+    'GLOBAL STYLE GUIDE (applies to every brand, non-negotiable):',
+    styleGuide || '(none)',
+    '',
+    '=========================',
+    '',
     'MESSAGING GUIDE (brand voice, MUST be preserved):',
     messagingGuide ? messagingGuide : '(empty, preserve the voice already present in the draft)',
     '',
@@ -79,7 +84,7 @@ function splitRevisedDraft(fullText) {
 
 export async function phase5FrameworkCheck({ topic, draft }) {
   const client = getClient();
-  const messagingGuide = await getGuide();
+  const [messagingGuide, styleGuide] = await Promise.all([getGuide(), loadStyleGuide()]);
 
   const response = await client.messages.create({
     model: MODEL,
@@ -88,7 +93,7 @@ export async function phase5FrameworkCheck({ topic, draft }) {
     messages: [
       {
         role: 'user',
-        content: buildUserPrompt({ topic, draft, messagingGuide }),
+        content: buildUserPrompt({ topic, draft, messagingGuide, styleGuide }),
       },
     ],
   });

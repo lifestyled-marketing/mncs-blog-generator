@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getClient, joinText } from '../../lib/anthropic.js';
-import { loadMessagingGuide } from '../../lib/utils.js';
+import { loadMessagingGuide, loadStyleGuide } from '../../lib/utils.js';
 
 const MODEL = 'claude-opus-4-7';
 const MAX_TOKENS = 4096;
@@ -35,8 +35,13 @@ function formatList(items) {
   return items.map((item) => `- ${item}`).join('\n');
 }
 
-function buildUserPrompt({ extracted, researchNotes, messagingGuide }) {
+function buildUserPrompt({ extracted, researchNotes, messagingGuide, styleGuide }) {
   return [
+    'GLOBAL STYLE GUIDE (applies to every brand, non-negotiable):',
+    styleGuide || '(none)',
+    '',
+    '=========================',
+    '',
     'MESSAGING GUIDE (brand voice, follow carefully):',
     messagingGuide ? messagingGuide : '(empty, use a clear and practical tone)',
     '',
@@ -86,7 +91,7 @@ function buildUserPrompt({ extracted, researchNotes, messagingGuide }) {
 
 export async function write({ extracted, researchNotes }) {
   const client = getClient();
-  const messagingGuide = await getGuide();
+  const [messagingGuide, styleGuide] = await Promise.all([getGuide(), loadStyleGuide()]);
 
   const response = await client.messages.create({
     model: MODEL,
@@ -95,7 +100,7 @@ export async function write({ extracted, researchNotes }) {
     messages: [
       {
         role: 'user',
-        content: buildUserPrompt({ extracted, researchNotes, messagingGuide }),
+        content: buildUserPrompt({ extracted, researchNotes, messagingGuide, styleGuide }),
       },
     ],
   });
