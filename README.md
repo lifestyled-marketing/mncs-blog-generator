@@ -181,14 +181,14 @@ vercel.json, package.json, .env.example, .gitignore
 
 ## `vercel.json` max duration
 
-Set to `300` seconds (Vercel Pro). Drop to `60` on the free plan:
+Set to `800` seconds, the max for Vercel Pro with Fluid Compute (enabled by
+default for new projects). EC's 5-phase pipeline with `web_search` and
+`web_fetch` can run 4 to 6 minutes end to end, so 300s is not enough. On the
+Hobby plan, the max is `60`, which is not enough for either brand.
 
 ```json
-{ "functions": { "api/generate-blog.js": { "maxDuration": 60 } } }
+{ "functions": { "api/generate-blog.js": { "maxDuration": 800 } } }
 ```
-
-Note: EC's 4-phase pipeline uses `web_search` and `web_fetch`, which add
-latency. Plan on Pro for EC.
 
 ## Local development
 

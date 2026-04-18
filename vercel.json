@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/generate-blog.js": {
-      "maxDuration": 300
+      "maxDuration": 800
     }
   }
 }
