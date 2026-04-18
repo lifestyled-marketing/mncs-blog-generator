@@ -98,7 +98,7 @@ Input: `transcript`. A 3-step pipeline.
 
 ### EC - Emberly Counseling
 
-Input: `topic`. A 4-phase pipeline.
+Input: `topic`. A 5-phase pipeline.
 
 1. **Phase 1 - Research** (`claude-sonnet-4-6`, `web_search_20250305`) -
    real search queries grouped by intent, top 5 ranking URLs, angles and
@@ -113,6 +113,12 @@ Input: `topic`. A 4-phase pipeline.
 4. **Phase 4 - Draft** (`claude-opus-4-7`, no web) - the full blog post
    written from the blueprint, plus meta title, meta description, inline
    image placements and link spots, and a self-check.
+5. **Phase 5 - Framework Check** (`claude-opus-4-7`, no web) - verifies
+   the draft against Emberly's core clinical frameworks (IFS, CBT, EMDR).
+   Corrects any inaccuracies, misuse of framework terms, or
+   non-trauma-informed advice. Preserves voice, structure, word count,
+   image placements, and link spots. Review notes logged to Vercel but not
+   returned in the callback.
 
 Follows `brands/EC/messaging-guide.txt`.
 

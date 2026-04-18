@@ -2,6 +2,7 @@ import { phase1Research } from './phase1-research.js';
 import { phase2Gather } from './phase2-gather.js';
 import { phase3Blueprint } from './phase3-blueprint.js';
 import { phase4Draft } from './phase4-draft.js';
+import { phase5FrameworkCheck } from './phase5-framework-check.js';
 import { countWords, StepError } from '../../lib/utils.js';
 
 export const code = 'EC';
@@ -55,10 +56,24 @@ export async function runPipeline({ input, requestId, log = () => {} }) {
     throw new StepError('phase4_draft', err.message, err);
   }
 
+  let frameworkResult;
+  try {
+    log(`[${requestId}] phase 5 framework check`);
+    frameworkResult = await phase5FrameworkCheck({ topic, draft: draftResult.draft });
+    log(
+      `[${requestId}] phase 5 ok, ${countWords(frameworkResult.revisedDraft)} words`,
+    );
+    if (frameworkResult.reviewNotes) {
+      log(`[${requestId}] framework review notes:\n${frameworkResult.reviewNotes}`);
+    }
+  } catch (err) {
+    throw new StepError('phase5_framework_check', err.message, err);
+  }
+
   return {
     topic,
-    blogPost: draftResult.draft,
-    wordCount: countWords(draftResult.draft),
+    blogPost: frameworkResult.revisedDraft,
+    wordCount: countWords(frameworkResult.revisedDraft),
     metaTitle: draftResult.metaTitle,
     metaDescription: draftResult.metaDescription,
   };
