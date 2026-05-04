@@ -96,6 +96,11 @@ writing steps, on top of each brand's messaging guide. Current rules:
 
 - No "It's not X. It's Y." / "We don't just X. We Y." reframe patterns.
 - No em dashes.
+- No invented URLs. External links must come from the verified research the
+  step was given. Internal links to the brand's own site must use the
+  `[INTERNAL LINK SUGGESTION: anchor text | topic: short description]`
+  placeholder with no URL, since the model has no sitemap. A human resolves
+  these later.
 
 It gets loaded and injected into the user prompt for MN's write step, EC's
 Phase 4 draft, and EC's Phase 5 framework check. Edit the file to add or
@@ -133,13 +138,17 @@ Input: `topic`. A 5-phase pipeline.
    word budget.
 4. **Phase 4 - Draft** (`claude-opus-4-7`, no web) - the full blog post
    written from the blueprint, plus meta title, meta description, inline
-   image placements and link spots, and a self-check.
+   image placements, and link markers (external links use only URLs from
+   verified research; internal links use the `[INTERNAL LINK SUGGESTION:
+   ...]` placeholder format with no URL), and a self-check.
 5. **Phase 5 - Framework Check** (`claude-opus-4-7`, no web) - verifies
    the draft against Emberly's core clinical frameworks (IFS, CBT, EMDR).
    Corrects any inaccuracies, misuse of framework terms, or
-   non-trauma-informed advice. Preserves voice, structure, word count,
-   image placements, and link spots. Review notes logged to Vercel but not
-   returned in the callback.
+   non-trauma-informed advice. Also strips any fabricated internal URLs
+   the writer slipped in and replaces them with `[INTERNAL LINK SUGGESTION:
+   ...]` placeholders. Preserves voice, structure, word count, and image
+   placements. Review notes logged to Vercel but not returned in the
+   callback.
 
 Follows `brands/EC/messaging-guide.txt`.
 

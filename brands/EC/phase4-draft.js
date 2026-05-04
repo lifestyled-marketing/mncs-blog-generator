@@ -57,16 +57,21 @@ function buildUserPrompt({ topic, blueprint, messagingGuide, styleGuide }) {
     '- Close with a clear next step, not a generic "in conclusion" wrap.',
     '- Include the FAQ section with schema-friendly Q and A formatting (H3 question, plain-paragraph answer).',
     '',
+    'LINK RULES (non-negotiable, see the global style guide above):',
+    '- External links: only link to a URL that appears verbatim in the Phase 1 or Phase 2 research that the blueprint was built from. Render as standard Markdown `[anchor text](url)`. If you do not have a verified URL for a source, name the source in plain text without a link. Never invent a URL.',
+    '- Internal links: do NOT guess URLs or slugs for the brand\'s own website. For each internal link opportunity from the blueprint, render a placeholder in this exact format with NO URL: `[INTERNAL LINK SUGGESTION: anchor text | topic: short description]`. A human will resolve these later.',
+    '- If you are not certain a link target is real, leave it out. A missing link is fine. A made-up link is a bug.',
+    '',
     'DELIVER, in this exact order, each under an H2 heading:',
     '',
     '## DRAFT',
-    'The complete blog post draft in clean Markdown. H1 title, H2 sections, H3 sub-sections and FAQ questions. Include image placement suggestions inline as [IMAGE: description | alt: text] and internal/external link spots inline as [LINK: anchor text -> target].',
+    'The complete blog post draft in clean Markdown. H1 title, H2 sections, H3 sub-sections and FAQ questions. Include image placement suggestions inline as [IMAGE: description | alt: text]. For external links, use standard Markdown links `[anchor text](url)` with URLs that came from the verified research only. For internal links to the brand\'s own site, use `[INTERNAL LINK SUGGESTION: anchor text | topic: short description]` with no URL.',
     '',
     '## META',
     'Final meta title (under 60 characters) on one line, then meta description (150 to 160 characters) on the next line.',
     '',
     '## SELF-CHECK',
-    'A short checklist confirming: no em dashes, no banned patterns, keywords present, word count within target, FAQ included, any heading order changes flagged.',
+    'A short checklist confirming: no em dashes, no banned patterns, keywords present, word count within target, FAQ included, any heading order changes flagged, every external URL came from the verified research (list them), no internal slugs invented (any internal links use the [INTERNAL LINK SUGGESTION: ...] placeholder format).',
   ].join('\n');
 }
 

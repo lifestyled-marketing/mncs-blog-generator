@@ -26,3 +26,39 @@ Rewrite as direct statements:
 
 Do not use em dashes in any response. Use commas, periods, or parentheses
 instead.
+
+## Links and citations (no invented URLs)
+
+Never fabricate URLs. This applies to every link in the post, internal and
+external. A previous post shipped with a list of links to blog posts that did
+not exist on the brand's website. That cannot happen again.
+
+External links and citations:
+- Only link to a URL that appears verbatim in the verified research provided
+  to this writing step (Phase 1 and Phase 2 output for EC, the RESEARCH NOTES
+  block for MN). If you did not see the URL in the research, you do not have
+  it.
+- When citing a stat or claim, name the source organization and the year
+  inline. If a verified URL was provided in the research, you may render the
+  source as a Markdown link `[source name](url)`. If no URL was provided, name
+  the source in plain text. Do not guess the URL of a study, news article, or
+  organization page.
+- Do not link to a domain you have not been given. No "according to a Stanford
+  study" linking to a fabricated `stanford.edu/...` URL.
+
+Internal links (links to other pages on the brand's own website):
+- You do not know what content exists on the brand's website. You have not
+  been given a sitemap. Do not invent slugs. Do not guess URLs. Do not link
+  to paths like `/blog/anxiety-tips`, `/services/emdr`, or anything similar.
+- When an internal link would help the reader, leave a placeholder for a
+  human to resolve later. Use this exact format with no URL:
+  `[INTERNAL LINK SUGGESTION: anchor text | topic: short description of what
+  the linked page should be about]`
+- Examples:
+  - Good: `[INTERNAL LINK SUGGESTION: read more about EMDR phases | topic:
+    detailed walkthrough of EMDR's 8 phases]`
+  - Bad: `[link to /blog/emdr-phases]`
+  - Bad: `[read more about EMDR phases](/blog/emdr-phases)`
+
+If you are not certain a link is real, do not include it. A missing link is
+fine. A made-up link is a bug.

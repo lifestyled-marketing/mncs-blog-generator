@@ -43,7 +43,7 @@ function buildUserPrompt({ topic, phase1Output, phase2Output }) {
     'Primary keyword plus 3 to 5 secondary keywords. For each, note where it should appear (title, H1, H2, intro, body, FAQ, meta, etc.).',
     '',
     '## INTERNAL LINK OPPORTUNITIES',
-    'Places where a link to related content would help the reader. Note the anchor text and the kind of target page.',
+    'Places where a link to related content on the brand\'s own site would help the reader. For each, note the anchor text and a short description of the kind of target page that should exist. NEVER include a URL or guess a slug. You do not know what pages exist on the brand\'s website. The draft writer will use these as placeholder suggestions for a human to resolve later.',
     '',
     '## WORD BUDGET',
     'Target word count and a rough word budget per section.',

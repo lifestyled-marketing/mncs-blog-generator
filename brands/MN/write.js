@@ -85,6 +85,11 @@ function buildUserPrompt({ extracted, researchNotes, messagingGuide, styleGuide 
     '- Every section should be practical and actionable.',
     '- Do not use em dashes anywhere. Use commas, periods, or parentheses instead.',
     '',
+    'Link rules (non-negotiable, see the global style guide above):',
+    '- External links: only link to a URL that appears verbatim in the RESEARCH NOTES block above. Render as standard Markdown `[anchor text](url)`. If a stat or claim has no URL in the research, name the source organization in plain text without a link. Never invent a URL.',
+    '- Internal links to the campaign / brand website: do NOT guess slugs or paths. You have no list of what pages exist. If an internal link would help, leave a placeholder in this exact format with no URL: `[INTERNAL LINK SUGGESTION: anchor text | topic: short description]`.',
+    '- If you are not certain a link is real, leave it out. A missing link is fine. A made-up link is a bug.',
+    '',
     'Output only the finished blog post in Markdown. No preamble.',
   ].join('\n');
 }
