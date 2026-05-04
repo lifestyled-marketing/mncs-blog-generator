@@ -1,5 +1,6 @@
 import { waitUntil } from '@vercel/functions';
 import { getBrand, listBrandCodes } from '../brands/registry.js';
+import { markdownToRtf } from '../lib/markdown-to-rtf.js';
 
 async function postCallback(callbackUrl, payload) {
   try {
@@ -28,11 +29,13 @@ async function runBrandPipeline({ brand, input, callbackUrl, requestId }) {
       log: (...args) => console.log(...args),
     });
 
+    const blogPostRtf = markdownToRtf(result.blogPost);
+
     await postCallback(callbackUrl, {
       status: 'success',
       brand_code: brandCode,
       topic: result.topic,
-      blog_post: result.blogPost,
+      blog_post: blogPostRtf,
       word_count: result.wordCount,
       meta_title: result.metaTitle || null,
       meta_description: result.metaDescription || null,

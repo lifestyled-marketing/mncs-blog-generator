@@ -60,13 +60,21 @@ On success:
   "status": "success",
   "brand_code": "MN",
   "topic": "The extracted topic",
-  "blog_post": "# Full markdown post...",
+  "blog_post": "{\\rtf1\\ansi... full RTF document ...}",
   "word_count": 1823,
   "meta_title": "under 60 chars (EC only)",
   "meta_description": "150 to 160 chars (EC only)",
   "generated_at": "2026-04-18T..."
 }
 ```
+
+`blog_post` is delivered as Rich Text Format (RTF), not Markdown. Save it as
+`.rtf` or paste into Google Docs / Word and it renders with formatting intact
+(headings, bold, italic, bullet and numbered lists, FAQ structure). Markdown
+links render as `text (url)`. The pipeline writes Markdown internally; RTF
+conversion happens in the router (`api/generate-blog.js`) right before the
+callback POST, via `lib/markdown-to-rtf.js`. `word_count` is still measured on
+the source Markdown.
 
 On failure:
 ```json
